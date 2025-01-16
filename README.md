@@ -21,7 +21,7 @@ INSTALLED_APPS += ['rdmo_ror']
 ...
 
 OPTIONSET_PROVIDERS += [
-    ('ror', _('ROR Provider'), 'rdmo_ror.providers.RORProvider')
+    ('ror', _('ROR Provider'), 'rdmo_ror.providers.RorProvider')
 ]
 ```
 
