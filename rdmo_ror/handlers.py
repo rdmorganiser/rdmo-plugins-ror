@@ -37,14 +37,27 @@ def value_handler(sender, request=None, instance=None, **kwargs):
             except (requests.exceptions.RequestException, requests.exceptions.HTTPError):
                 return
 
-            if 'acronym' in attribute_map:
+            acronym = next(iter(data.get('acronyms', [])), None)
+            if acronym and 'acronym' in attribute_map:
                 Value.objects.update_or_create(
                     project=instance.project,
                     attribute=Attribute.objects.get(uri=attribute_map['acronym']),
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
                     defaults={
-                        'text': next(iter(data.get('acronyms', [])), '')
+                        'text': acronym
+                    }
+                )
+
+            alias = next(iter(data.get('aliases', [])), None)
+            if alias and 'alias' in attribute_map:
+                Value.objects.update_or_create(
+                    project=instance.project,
+                    attribute=Attribute.objects.get(uri=attribute_map['alias']),
+                    set_prefix=instance.set_prefix,
+                    set_index=instance.set_index,
+                    defaults={
+                        'text': alias
                     }
                 )
 

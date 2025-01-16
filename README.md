@@ -33,6 +33,7 @@ If a selection of a ROR ID should update other fields, you can add a `ROR_PROVID
 ROR_PROVIDER_MAP = [
     {
         'ror': 'https://rdmorganiser.github.io/terms/domain/project/partner/ror',
+        'alias': 'https://rdmorganiser.github.io/terms/domain/project/partner/id',
         'acronym': 'https://rdmorganiser.github.io/terms/domain/project/partner/id',
         'name': 'https://rdmorganiser.github.io/terms/domain/project/partner/name',
     }
