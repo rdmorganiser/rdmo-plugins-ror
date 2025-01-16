@@ -30,7 +30,7 @@ The option set provider should now be selectable for option sets in your RDMO in
 If a selection of a ROR ID should update other fields, you can add a `ROR_PROVIDER_MAP` in your settings, e.g.:
 
 ```python
-v_PROVIDER_MAP = [
+ROR_PROVIDER_MAP = [
     {
         'ror': 'https://rdmorganiser.github.io/terms/domain/project/partner/ror',
         'acronym': 'https://rdmorganiser.github.io/terms/domain/project/partner/id',
