@@ -9,7 +9,7 @@ from rdmo.projects.models import Value
 
 
 @receiver(post_save, sender=Value)
-def value_handler(sender, request=None, instance=None, **kwargs):
+def ror_handler(sender, instance=None, **kwargs):
     # check for ROR_PROVIDER_MAP
     if not getattr(settings, 'ROR_PROVIDER_MAP', None):
         return
