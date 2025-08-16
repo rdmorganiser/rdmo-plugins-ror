@@ -1,6 +1,7 @@
 import re
 
 from django.conf import settings
+from django.templatetags.static import static
 
 import requests
 
@@ -41,7 +42,11 @@ class RorProvider(Provider):
         return item.get('id', '').replace('https://ror.org/', '')
 
     def get_text(self, item):
-        return '{name} [{id}]'.format(name=item.get('name', ''), id=self.get_id(item))
+        ror_name = item.get('name', '')
+        ror_id = item['id']
+        ror_img = static('ror/img/ROR.png')
+        ror_link = f'<a href="{ror_id}"><img height="16" src="{ror_img}" alt="ROR logo" /> {ror_id}</a>'
+        return f'{ror_name} {ror_link}'
 
     def get_search(self, search):
         # reverse get_text to perform the search, remove everything after [
