@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import get_language
 
@@ -7,10 +6,12 @@ import requests
 
 from rdmo.domain.models import Attribute
 from rdmo.projects.models import Value
+from rdmo.projects.signals import value_created, value_updated
 
 
-@receiver(post_save, sender=Value)
-def ror_handler(sender, instance=None, **kwargs):
+@receiver(value_created, sender=Value)
+@receiver(value_updated, sender=Value)
+def ror_handler(signal, sender, instance=None, **kwargs):
     lang = get_language()
 
     # check for ROR_PROVIDER_MAP
@@ -53,6 +54,7 @@ def ror_handler(sender, instance=None, **kwargs):
             if acronym and 'acronym' in attribute_map:
                 Value.objects.update_or_create(
                     project=instance.project,
+                    snapshot=None,
                     attribute=Attribute.objects.get(uri=attribute_map['acronym']),
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
@@ -64,6 +66,7 @@ def ror_handler(sender, instance=None, **kwargs):
             if name and 'name' in attribute_map:
                 Value.objects.update_or_create(
                     project=instance.project,
+                    snapshot=None,
                     attribute=Attribute.objects.get(uri=attribute_map['name']),
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
