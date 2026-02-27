@@ -50,21 +50,13 @@ class RorProvider(Provider):
         return f'{ror_name} {ror_link}' if ror_name else ror_link
 
     def get_name(self, item):
-        current_language = get_language()
-        labels = [
-            name
-            for name in item.get('names', [])
-            if 'label' in name.get('types', [])
-        ]
+        lang = get_language()
 
-        if not labels:
-            return None
-
-        for name in labels:
-            if name.get('lang') == current_language:
-                return name.get('value')
-
-        return labels[0].get('value')
+        return next(iter([
+            name['value'] for name in item.get('names', []) if 'label' in name['types'] and name['lang'] == lang
+        ]), None) or next(iter([
+            name['value'] for name in item.get('names', []) if 'ror_display' in name['types']
+        ]), None)
 
     def get_search(self, search):
         # reverse get_text to perform the search, remove everything after [
