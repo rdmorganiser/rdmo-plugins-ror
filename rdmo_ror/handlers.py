@@ -1,15 +1,19 @@
 from django.conf import settings
-from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.translation import get_language
 
 import requests
 
 from rdmo.domain.models import Attribute
 from rdmo.projects.models import Value
+from rdmo.projects.signals import value_created, value_updated
 
 
-@receiver(post_save, sender=Value)
-def ror_handler(sender, instance=None, **kwargs):
+@receiver(value_created, sender=Value)
+@receiver(value_updated, sender=Value)
+def ror_handler(signal, sender, instance=None, **kwargs):
+    lang = get_language()
+
     # check for ROR_PROVIDER_MAP
     if not getattr(settings, 'ROR_PROVIDER_MAP', None):
         return
@@ -27,7 +31,7 @@ def ror_handler(sender, instance=None, **kwargs):
         if 'ror' in attribute_map and instance.attribute.uri == attribute_map['ror']:
             # query the orcid api for the record for this orcid
             try:
-                url = getattr(settings, 'ROR_PROVIDER_URL', 'https://api.ror.org/v1/').rstrip('/')
+                url = getattr(settings, 'ROR_PROVIDER_URL', 'https://api.ror.org/v2/').rstrip('/')
                 headers = getattr(settings, 'ROR_PROVIDER_HEADERS', {})
 
                 response = requests.get(f'{url}/organizations/{instance.external_id}', headers=headers)
@@ -37,10 +41,20 @@ def ror_handler(sender, instance=None, **kwargs):
             except (requests.exceptions.RequestException, requests.exceptions.HTTPError):
                 return
 
-            acronym = next(iter(data.get('acronyms', [])), None)
+            acronym = next(iter([
+                name['value'] for name in data.get('names', []) if 'acronym' in name['types']
+            ]), None)
+
+            name = next(iter([
+                name['value'] for name in data.get('names', []) if 'label' in name['types'] and name['lang'] == lang
+            ]), None) or next(iter([
+                name['value'] for name in data.get('names', []) if 'ror_display' in name['types']
+            ]), None)
+
             if acronym and 'acronym' in attribute_map:
                 Value.objects.update_or_create(
                     project=instance.project,
+                    snapshot=None,
                     attribute=Attribute.objects.get(uri=attribute_map['acronym']),
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
@@ -49,25 +63,14 @@ def ror_handler(sender, instance=None, **kwargs):
                     }
                 )
 
-            alias = next(iter(data.get('aliases', [])), None)
-            if alias and 'alias' in attribute_map:
+            if name and 'name' in attribute_map:
                 Value.objects.update_or_create(
                     project=instance.project,
-                    attribute=Attribute.objects.get(uri=attribute_map['alias']),
-                    set_prefix=instance.set_prefix,
-                    set_index=instance.set_index,
-                    defaults={
-                        'text': alias
-                    }
-                )
-
-            if 'name' in attribute_map:
-                Value.objects.update_or_create(
-                    project=instance.project,
+                    snapshot=None,
                     attribute=Attribute.objects.get(uri=attribute_map['name']),
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
                     defaults={
-                        'text': data.get('name')
+                        'text': name
                     }
                 )
