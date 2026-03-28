@@ -41,15 +41,18 @@ def ror_handler(signal, sender, instance=None, **kwargs):
             except (requests.exceptions.RequestException, requests.exceptions.HTTPError):
                 return
 
-            acronym = next(iter([
+            acronym_list = [
                 name['value'] for name in data.get('names', []) if 'acronym' in name['types']
-            ]), None)
-
-            name = next(iter([
+            ]  # fmt: skip
+            label_list = [
                 name['value'] for name in data.get('names', []) if 'label' in name['types'] and name['lang'] == lang
-            ]), None) or next(iter([
+            ]  # fmt: skip
+            ror_display_list = [
                 name['value'] for name in data.get('names', []) if 'ror_display' in name['types']
-            ]), None)
+            ]  # fmt: skip
+
+            acronym = next(iter(acronym_list), None)
+            name = next(iter(label_list), None) or next(iter(ror_display_list), None)
 
             if acronym and 'acronym' in attribute_map:
                 Value.objects.update_or_create(
@@ -59,8 +62,8 @@ def ror_handler(signal, sender, instance=None, **kwargs):
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
                     defaults={
-                        'text': acronym
-                    }
+                        'text': acronym,
+                    },
                 )
 
             if name and 'name' in attribute_map:
@@ -71,6 +74,6 @@ def ror_handler(signal, sender, instance=None, **kwargs):
                     set_prefix=instance.set_prefix,
                     set_index=instance.set_index,
                     defaults={
-                        'text': name
-                    }
+                        'text': name,
+                    },
                 )

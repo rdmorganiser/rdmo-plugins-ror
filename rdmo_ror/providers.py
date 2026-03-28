@@ -10,7 +10,6 @@ from rdmo.options.providers import Provider
 
 
 class RorProvider(Provider):
-
     search = True
     refresh = True
 
@@ -19,9 +18,13 @@ class RorProvider(Provider):
             url = getattr(settings, 'ROR_PROVIDER_URL', 'https://api.ror.org/v2/').rstrip('/')
             headers = getattr(settings, 'ROR_PROVIDER_HEADERS', {})
 
-            response = requests.get(url + '/organizations', params={
-                'query': self.get_search(search)
-            }, headers=headers)
+            response = requests.get(
+                url + '/organizations',
+                params={
+                    'query': self.get_search(search),
+                },
+                headers=headers,
+            )
 
             try:
                 data = response.json()
@@ -32,8 +35,9 @@ class RorProvider(Provider):
                     return [
                         {
                             'id': self.get_id(item),
-                            'text': self.get_text(item)
-                        } for item in data['items']
+                            'text': self.get_text(item),
+                        }
+                        for item in data['items']
                     ]
 
         # return an empty list by default
@@ -52,11 +56,14 @@ class RorProvider(Provider):
     def get_name(self, item):
         lang = get_language()
 
-        return next(iter([
+        label_list = [
             name['value'] for name in item.get('names', []) if 'label' in name['types'] and name['lang'] == lang
-        ]), None) or next(iter([
+        ]  # fmt: skip
+        ror_display_list = [
             name['value'] for name in item.get('names', []) if 'ror_display' in name['types']
-        ]), None)
+        ]  # fmt: skip
+
+        return next(iter(label_list), None) or next(iter(ror_display_list), None)
 
     def get_search(self, search):
         # reverse get_text to perform the search, remove everything after [
