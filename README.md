@@ -49,3 +49,9 @@ ROR_PROVIDER_HEADERS = {
     'User-Agent': 'rdmo.example.com/1.0 (mail@rdmo.example.com) rdmo-plugins-ror/1.0'
 }
 ```
+
+By default, the plugin stores the name of the institution and the link to the ROR page as `text` in RDMO (the ROR itself is stored as `external_id`). The name of the institution can be omitted by setting:
+
+```python
+ROR_STORE_NAME = False
+```
